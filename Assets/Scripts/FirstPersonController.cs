@@ -10,6 +10,8 @@ using UnityEngine;
 public class FirstPersonController : MonoBehaviour
 {
     private Rigidbody rb;
+    public GameController gameController;
+    public Transform spawnObjectPoint;
 
     #region Camera Movement Variables
 
@@ -221,6 +223,12 @@ public class FirstPersonController : MonoBehaviour
         {
             HeadBob();
         }
+
+        if (Input.GetKeyDown(KeyCode.F))
+            gameController.TakeObject();
+
+        if (Input.GetKeyDown(KeyCode.R))
+            gameController.PutObject(spawnObjectPoint.position);
     }
 
     void FixedUpdate()
@@ -374,5 +382,20 @@ public class FirstPersonController : MonoBehaviour
             timer = 0;
             joint.localPosition = new Vector3(Mathf.Lerp(joint.localPosition.x, jointOriginalPos.x, Time.deltaTime * bobSpeed), Mathf.Lerp(joint.localPosition.y, jointOriginalPos.y, Time.deltaTime * bobSpeed), Mathf.Lerp(joint.localPosition.z, jointOriginalPos.z, Time.deltaTime * bobSpeed));
         }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!gameController.IsTakenObject() && other.gameObject.CompareTag("ObjectForSearch"))
+        {
+            gameController.ShowTipToTakeObject();
+            gameController.SetCurrentObject(other.gameObject.transform.parent.gameObject);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.CompareTag("ObjectForSearch"))
+            gameController.HideTipToTakeObject();
     }
 }
