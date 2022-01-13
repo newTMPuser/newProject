@@ -2,25 +2,32 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 public class GameController : MonoBehaviour
 {
-    [System.Serializable]
-    public class ObjectForSearch
-    {
-        public string name;
-        public GameObject gameObject;
-    }
-
     public List<ObjectForSearch> objectsForSearch;
     public Slider progressBar;
     public Text takeObject;
     public Text putObject;
     public GameObject winPanel;
 
+    public string taskFormat = "Find {0}";
+    public Text taskText;
+
     int startCount = 0;
 
     GameObject takenGameObject;
+
+    private void Start()
+    {
+        var rnd = new System.Random();
+        objectsForSearch = objectsForSearch.OrderBy(item => rnd.Next()).ToList();
+
+        taskText.text = string.Format(taskFormat, objectsForSearch[0].name);
+
+        startCount = objectsForSearch.Count;
+    }
 
     public void ShowTipToTakeObject()
     {
@@ -50,6 +57,8 @@ public class GameController : MonoBehaviour
 
             putObject.gameObject.SetActive(false);
             takeObject.gameObject.SetActive(true);
+
+            taskText.text = string.Format(taskFormat, objectsForSearch[0].name);
         }
     }
 
@@ -60,29 +69,35 @@ public class GameController : MonoBehaviour
             takenGameObject.SetActive(false);
             takeObject.gameObject.SetActive(false);
             putObject.gameObject.SetActive(true);
+
+            if(takenGameObject.GetComponent<ObjectForSearch>().name == objectsForSearch[0].gameObject.GetComponent<ObjectForSearch>().name)
+            {
+                taskText.text = "Put object in box";
+            }
         }
     }
 
     public bool IsTakenObject() => takenGameObject != null;
 
-    private void Start()
-    {
-        startCount = objectsForSearch.Count;
-    }
-
     public void RemoveObject(GameObject gameObject)
     {
-        foreach(var obj in objectsForSearch)
-            if(obj.gameObject.Equals(gameObject))
-            {
-                objectsForSearch.Remove(obj);
-                break;
-            }
+        gameObject = gameObject.transform.parent.gameObject;
+
+        if (objectsForSearch[0]._name == gameObject.GetComponent<ObjectForSearch>()._name)
+            objectsForSearch.RemoveAt(0);
+        else
+            return;
 
         UpdateProgressBar();
 
         if (objectsForSearch.Count == 0)
+        {
+            Time.timeScale = 0;
             winPanel.SetActive(true);
+            return;
+        }
+
+        taskText.text = string.Format(taskFormat, objectsForSearch[0].name);
     }
 
     void UpdateProgressBar()
