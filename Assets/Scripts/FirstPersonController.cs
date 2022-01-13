@@ -112,11 +112,12 @@ public class FirstPersonController : MonoBehaviour
         }
     }
 
-    float camRotation;
-
     private void Update()
     {
         #region Camera
+
+        if (Time.timeScale == 0)
+            return;
 
         // Control camera movement
         if(cameraCanMove)
